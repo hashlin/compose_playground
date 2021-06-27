@@ -8,11 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import com.linminphyo.meditation.movie.details.MovieDetailsScreen
-import com.linminphyo.meditation.movie.details.MovieDetailsUIModel
 import com.linminphyo.meditation.movie.details.MovieDetailsViewModel
-import com.linminphyo.meditation.swipe.CardSwipe2
-import com.linminphyo.meditation.swipe.CardSwipeScreen
+import com.linminphyo.meditation.swipe.CardStack
 import com.linminphyo.meditation.ui.theme.MeditationTheme
 
 class MainActivity : ComponentActivity() {
@@ -25,7 +22,7 @@ class MainActivity : ComponentActivity() {
             MeditationTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
-                    CardSwipe2()
+                    CardStack()
                 }
             }
         }

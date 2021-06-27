@@ -30,7 +30,7 @@ private val LightColorPalette = lightColors(
 
 @Composable
 fun MeditationTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable() () -> Unit) {
-    val colors = DarkColorPalette
+    val colors = LightColorPalette
 
     MaterialTheme(
         colors = colors,

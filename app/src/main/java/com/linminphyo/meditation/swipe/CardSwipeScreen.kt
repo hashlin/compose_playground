@@ -5,6 +5,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
@@ -22,14 +23,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.MeasurePolicy
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.coil.rememberCoilPainter
@@ -93,13 +100,97 @@ fun CardSwipeScreen() {
 }
 
 @ExperimentalMaterialApi
+@Preview(showSystemUi = true)
 @Composable
-fun CardSwipe2() {
+fun CardStack() {
+    val list =
+        remember {
+            mutableStateOf(
+                listOf(
+                    Color.Red,
+                    Color.Blue,
+                    Color.Green,
+                    Color.Yellow,
+                    Color.Gray,
+                    Color.Magenta
+                )
+            )
+        }
 
+    val showingIndex = remember { mutableStateOf(list.value.lastIndex) }
+
+    val scales = list.value.mapIndexed { index, _ ->
+        val reversedIndex = showingIndex.value - index
+        animateFloatAsState(targetValue = 1f - (reversedIndex / 10f))
+    }
+
+    val offsetYs = list.value.mapIndexed { index, _ ->
+        val offset = if (showingIndex.value == index) {
+            0.dp
+        } else if (showingIndex.value - 1 == index) {
+            (-30).dp
+        } else {
+            (-60).dp
+        }
+        animateDpAsState(targetValue = offset)
+    }
+
+    // List last index always 5
+    // Showing Index - variable, initially 5
+    // 6 -> 3, 5
+    // 5 -> 2, 4
+    // 4 -> 1, 3
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        val startIndex = (showingIndex.value - 2).coerceAtLeast(0)
+        list.value.subList(startIndex, showingIndex.value + 1).forEachIndexed { index, color ->
+//            if (showingIndex.value != 0) {
+//                showingIndex.value = showingIndex.value - 1
+//            }
+            StackableCard(
+                scale = scales[startIndex + index].value,
+                topOffset = offsetYs[startIndex + index].value,
+                modifier = Modifier
+                    .align(Alignment.Center)
+            ) {
+                SwipeableCard(backgroundColor = color, modifier = Modifier) {
+                    showingIndex.value = showingIndex.value - 1
+                }
+            }
+        }
+    }
+}
+
+@ExperimentalMaterialApi
+@Composable
+fun StackableCard(
+    scale: Float,
+    topOffset: Dp,
+    modifier: Modifier,
+    content: @Composable () -> Unit,
+) {
+    Box(modifier = modifier
+        .size(200.dp)
+        .scale(scale)
+        .offset(y = topOffset)
+    ) {
+        content()
+    }
+}
+
+@ExperimentalMaterialApi
+@Composable
+fun SwipeableCard(backgroundColor: Color, modifier: Modifier, onActionFinished: () -> Unit) {
     val squareSize = 300.dp
 
-    val verticalSwipeableState = rememberSwipeableState(1)
-    val horizontalSwipeableState = rememberSwipeableState(1)
+    val verticalSwipeableState = rememberSwipeableState(1) { state ->
+        if (state == 0 || state == 2) onActionFinished.invoke()
+        true
+    }
+    val horizontalSwipeableState = rememberSwipeableState(1) { state ->
+        if (state == 0 || state == 2) onActionFinished.invoke()
+        true
+    }
 
     val rotationAngle =
         animateFloatAsState(targetValue = horizontalSwipeableState.offset.value / 50)
@@ -140,11 +231,11 @@ fun CardSwipe2() {
 //    val offsetY = remember { androidx.compose.animation.core.Animatable(0f) }
     val coroutineScope = rememberCoroutineScope()
 
-    Box(modifier = Modifier.fillMaxSize()) {
+//    Box(modifier = Modifier.fillMaxSize()) {
         Card(
             shape = RoundedCornerShape(16.dp),
-            backgroundColor = Color.White,
-            modifier = Modifier
+            backgroundColor = backgroundColor,
+            modifier = modifier
                 .offset {
                     IntOffset(
                         horizontalSwipeableState.offset.value.roundToInt(),
@@ -155,7 +246,6 @@ fun CardSwipe2() {
                 .rotate(rotationAngle.value)
                 .size(squareSize)
                 .aspectRatio(0.69f, false)
-                .align(Alignment.Center)
                 .swipeable(
                     state = verticalSwipeableState,
                     anchors = verticalAnchors,
@@ -210,15 +300,15 @@ fun CardSwipe2() {
             }
         }
 
-        Button(onClick = {
-            coroutineScope.launch {
-                verticalSwipeableState.animateTo(1)
-                horizontalSwipeableState.animateTo(1)
-            }
-        }, modifier = Modifier.align(Alignment.BottomCenter)) {
-            Text(text = "Go to center")
-        }
-    }
+//        Button(onClick = {
+//            coroutineScope.launch {
+//                verticalSwipeableState.animateTo(1)
+//                horizontalSwipeableState.animateTo(1)
+//            }
+//        }, modifier = Modifier.align(Alignment.BottomCenter)) {
+//            Text(text = "Go to center")
+//        }
+//    }
 
 }
 
